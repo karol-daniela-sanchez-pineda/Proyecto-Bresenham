@@ -1,0 +1,47 @@
+# Build artifacts
+*.o
+*.obj
+*.exe
+*.dll
+*.lib
+*.a
+*.so
+*.out
+*.bin
+build/
+bin/
+Debug/
+Release/
+
+# IDE-specific files (e.g., Visual Studio)
+.vs/
+*.vcxproj.user
+*.suo
+*.sln.docstates
+*.opendb
+ipch/
+*.aps
+*.ncb
+*.sdf
+*.tlog
+*.log
+*.ilk
+*.pdb
+
+# macOS specific files
+.DS_Store
+
+# Linux specific files
+*~
+
+# Temporary files
+*.tmp
+*.bak
+
+# Dependency modules (if using submodules or package managers)
+# For example, if you are using vcpkg for dependencies and storing them in the project root:
+# vcpkg/
+# installed/
+
+# Compiled shader files (if applicable)
+*.spv
