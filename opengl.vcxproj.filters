@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Resource Files\shaders">
+      <UniqueIdentifier>{8e3e4309-e261-4a37-bcc7-928cff760df9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\buffers">
+      <UniqueIdentifier>{d8823b81-ae1c-4607-95e5-364af05f956c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c">
@@ -24,13 +30,23 @@
     <ClCompile Include="origin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="shaderClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\fragment.frag" />
-    <None Include="shaders\vertex.vert" />
+    <None Include="vertex.vs">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="fragment.fs">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Origin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -3,7 +3,7 @@
 #include <cstring> // for std::memcpy
 
 // default unit vectors centered at origin (X,Y,Z)
-static const LineVertex kDefaultOrigin[] = {
+static const OriginVertex kDefaultOrigin[] = {
     // X axis (red)
     { { 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
     { { 1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
@@ -21,7 +21,7 @@ Origin::Origin() noexcept {
     init(kDefaultOrigin, sizeof(kDefaultOrigin) / sizeof(kDefaultOrigin[0]));
 }
 
-Origin::Origin(const LineVertex* data, std::size_t count) {
+Origin::Origin(const OriginVertex* data, std::size_t count) {
     init(data, count);
 }
 
@@ -49,7 +49,7 @@ Origin& Origin::operator=(Origin&& other) noexcept {
     return *this;
 }
 
-void Origin::init(const LineVertex* data, std::size_t count) {
+void Origin::init(const OriginVertex* data, std::size_t count) {
     destroy();
     if (data == nullptr || count == 0) return;
 
@@ -59,14 +59,14 @@ void Origin::init(const LineVertex* data, std::size_t count) {
 
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(count * sizeof(LineVertex)), data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(count * sizeof(OriginVertex)), data, GL_STATIC_DRAW);
 
     // attribute 0 = vec3 position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, static_cast<GLsizei>(sizeof(LineVertex)), reinterpret_cast<void*>(offsetof(LineVertex, pos)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, static_cast<GLsizei>(sizeof(OriginVertex)), reinterpret_cast<void*>(offsetof(OriginVertex, pos)));
     glEnableVertexAttribArray(0);
 
     // attribute 1 = vec4 color
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, static_cast<GLsizei>(sizeof(LineVertex)), reinterpret_cast<void*>(offsetof(LineVertex, color)));
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, static_cast<GLsizei>(sizeof(OriginVertex)), reinterpret_cast<void*>(offsetof(OriginVertex, color)));
     glEnableVertexAttribArray(1);
 
     // ensure shader's angle attribute (location 2) reads zero for lines (harmless if shader lacks location 2)
@@ -77,7 +77,7 @@ void Origin::init(const LineVertex* data, std::size_t count) {
     glBindVertexArray(0);
 }
 
-void Origin::update(const LineVertex* data, std::size_t count) {
+void Origin::update(const OriginVertex* data, std::size_t count) {
     if (m_vbo == 0) {
         init(data, count);
         return;
@@ -89,7 +89,7 @@ void Origin::update(const LineVertex* data, std::size_t count) {
     m_count = count;
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     // overwrite entire buffer (assumes size <= allocated). For safety we reallocate.
-    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(count * sizeof(LineVertex)), data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(count * sizeof(OriginVertex)), data, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 

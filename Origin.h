@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <glad/glad.h>
 
-struct LineVertex {
+struct OriginVertex {
     GLfloat pos[3];
     GLfloat color[4];
 };
@@ -12,7 +12,7 @@ class Origin
 {
 public:
     Origin() noexcept;
-    Origin(const LineVertex* data, std::size_t count);
+    Origin(const OriginVertex* data, std::size_t count);
     ~Origin();
 
     // non-copyable
@@ -24,8 +24,8 @@ public:
     Origin& operator=(Origin&& other) noexcept;
 
     // initialize or replace data
-    void init(const LineVertex* data, std::size_t count);
-    void update(const LineVertex* data, std::size_t count); // updates buffer contents
+    void init(const OriginVertex* data, std::size_t count);
+    void update(const OriginVertex* data, std::size_t count); // updates buffer contents
     void draw() const;
 
     std::size_t vertexCount() const noexcept { return m_count; }
