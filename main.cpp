@@ -16,13 +16,15 @@
 #include "ShaderClass.h"
 #include "Origin.h"
 
-/*************** ESTRUCTURA PARA LOS PÍXELES DEL LIENZO ***************/
+/*********************************************************************/
+/************************* BLOQUE 1: CONFIGURACIÓN *******************/
+/*********************************************************************/
+
 struct VertexSquare {
     GLfloat pos[3];    // x, y, z
     GLfloat color[4];  // color RGBA 
 };
 
-/*************** HISTORIAL DE FIGURAS ***************/
 enum TipoFigura { FIG_LINEA, FIG_CIRCULO, FIG_TRIANGULO };
 struct Figura {
     TipoFigura tipo;
@@ -33,17 +35,15 @@ struct Figura {
     bool rellenar;
 };
 
-// --- Variables Globales ---
 static GLuint g_VAO_sq = 0, g_VBO_sq = 0, g_EBO_sq = 0;
 static std::vector<VertexSquare> g_gridVerts;
 static std::vector<GLuint> g_gridIndices;
 static int g_gridCols = 80;
 static int g_gridRows = 80;
-static GLfloat g_baseColor[4] = { 0.15f, 0.15f, 0.15f, 1.0f }; // Fondo gris oscuro
+static GLfloat g_baseColor[4] = { 0.15f, 0.15f, 0.15f, 1.0f };
 static GLsizei g_squareIndexCount = 0;
 static float g_startX = 0.0f, g_startY = 0.0f, g_cellW = 0.0f, g_cellH = 0.0f;
 
-// --- Interfaz y Modos ---
 enum ModoDibujo { LINEA, CIRCULO, TRIANGULO };
 static ModoDibujo g_modoActual = LINEA;
 static bool g_rellenarFiguras = false;
@@ -51,15 +51,16 @@ static bool g_rellenarFiguras = false;
 static std::vector<Figura> g_historialFiguras;
 static std::vector<Figura> g_historialRehacer;
 
-// Color inicial del pincel (Blanco por defecto)
 static GLfloat g_colorActivo[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-// Estado de los clics en el lienzo
-static int g_clickX0 = -1, g_clickY0 = -1;
-static int g_clickX1 = -1, g_clickY1 = -1;
-static int g_estadoClic = 0;
+int g_clickX0 = -1, g_clickY0 = -1;
+int g_clickX1 = -1, g_clickY1 = -1;
+int g_estadoClic = 0;
 
-/*************** PINTAR UNA CELDA ESPECÍFICA ***************/
+/*********************************************************************/
+/************************* BLOQUE 2: MATEMÁTICAS Y ALGORITMOS ********/
+/*********************************************************************/
+
 static void SetCellColor(std::vector<VertexSquare>& verts, int cols, int rows, int cx, int cy, const GLfloat color[4]) {
     if (cx < 0 || cx >= cols || cy < 0 || cy >= rows) return;
     size_t cellIndex = static_cast<size_t>(cy) * cols + static_cast<size_t>(cx);
@@ -72,7 +73,6 @@ static void SetCellColor(std::vector<VertexSquare>& verts, int cols, int rows, i
     }
 }
 
-/*************** DIBUJAR RECTÁNGULOS (PARA LIMPIAR EL LIENZO) ***************/
 static void DrawUIRect(std::vector<VertexSquare>& verts, int cols, int rows, int x0, int y0, int x1, int y1, const GLfloat color[4]) {
     for (int y = y0; y <= y1; ++y) {
         for (int x = x0; x <= x1; ++x) {
@@ -81,7 +81,6 @@ static void DrawUIRect(std::vector<VertexSquare>& verts, int cols, int rows, int
     }
 }
 
-/*************** ALGORITMO BRESENHAM: LÍNEAS ***************/
 static void PaintLineBresenham(std::vector<VertexSquare>& verts, int cols, int rows, int x0, int y0, int x1, int y1, const GLfloat color[4]) {
     int dx = std::abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
     int dy = -std::abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
@@ -95,7 +94,6 @@ static void PaintLineBresenham(std::vector<VertexSquare>& verts, int cols, int r
     }
 }
 
-// Simetría para círculos
 static void DrawCircleSymmetry(std::vector<VertexSquare>& verts, int cols, int rows, int xc, int yc, int x, int y, const GLfloat color[4], bool fill) {
     if (fill) {
         PaintLineBresenham(verts, cols, rows, xc - x, yc + y, xc + x, yc + y, color);
@@ -115,7 +113,6 @@ static void DrawCircleSymmetry(std::vector<VertexSquare>& verts, int cols, int r
     }
 }
 
-/*************** ALGORITMO BRESENHAM: CÍRCULOS ***************/
 static void PaintCircleBresenham(std::vector<VertexSquare>& verts, int cols, int rows, int xc, int yc, int r, const GLfloat color[4], bool fill) {
     int x = 0, y = r, d = 3 - 2 * r;
     DrawCircleSymmetry(verts, cols, rows, xc, yc, x, y, color, fill);
@@ -127,7 +124,6 @@ static void PaintCircleBresenham(std::vector<VertexSquare>& verts, int cols, int
     }
 }
 
-/*************** ALGORITMO: TRIÁNGULOS (SCANLINE) ***************/
 static void PaintTriangleBresenham(std::vector<VertexSquare>& verts, int cols, int rows, int x0, int y0, int x1, int y1, int x2, int y2, const GLfloat color[4], bool fill) {
     if (!fill) {
         PaintLineBresenham(verts, cols, rows, x0, y0, x1, y1, color);
@@ -156,7 +152,6 @@ static void PaintTriangleBresenham(std::vector<VertexSquare>& verts, int cols, i
     }
 }
 
-/*************** RECONSTRUIR EL LIENZO DESDE EL HISTORIAL ***************/
 static void RedrawCanvasFromHistory(std::vector<VertexSquare>& verts, int cols, int rows) {
     DrawUIRect(verts, cols, rows, 0, 0, cols - 1, rows - 1, g_baseColor);
     for (const auto& fig : g_historialFiguras) {
@@ -168,6 +163,10 @@ static void RedrawCanvasFromHistory(std::vector<VertexSquare>& verts, int cols, 
         else if (fig.tipo == FIG_TRIANGULO) PaintTriangleBresenham(verts, cols, rows, fig.x0, fig.y0, fig.x1, fig.y1, fig.x2, fig.y2, fig.color, fig.rellenar);
     }
 }
+
+/*********************************************************************/
+/************************* BLOQUE 3: CREACIÓN DE GRÁFICOS ************/
+/*********************************************************************/
 
 static void CreateSquareVAO(GLuint& VAO, GLuint& VBO, GLuint& EBO, const VertexSquare* verts, size_t vertCount, const GLuint* indices, size_t indexCount) {
     glGenVertexArrays(1, &VAO); glGenBuffers(1, &VBO); glGenBuffers(1, &EBO);
@@ -205,7 +204,10 @@ static void CreateGridSquaresForViewport(std::vector<VertexSquare>& outVerts, st
     CreateGridSquares(outVerts, outIndices, cols, rows, outStartX, outStartY, outCellW, outCellH, color);
 }
 
-/*************** PROCESAR CLICS EN EL LIENZO ***************/
+/*********************************************************************/
+/************************* BLOQUE 4: RECONOCIMIENTO DEL MOUSE ********/
+/*********************************************************************/
+
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
@@ -262,13 +264,16 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height); RecreateGridForViewport(window);
 }
 
-/*************** FUNCIÓN PRINCIPAL MAIN ***************/
+/*********************************************************************/
+/************************* BLOQUE 5: FUNCIÓN DE CONTROL (MAIN) *******/
+/*********************************************************************/
+
 int main() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(1200, 800, "Paint Studio Interactivo - Bresenham Engine + ImGui", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1200, 800, "Paint Studio Interactivo", nullptr, nullptr);
     if (window == nullptr) { glfwTerminate(); return -1; }
     glfwMakeContextCurrent(window); gladLoadGL();
 
@@ -278,22 +283,16 @@ int main() {
     RecreateGridForViewport(window);
     ShaderClass shader("vertex.vs", "fragment.fs");
 
-    // =========================================================
-    // INICIALIZACIÓN DE DEAR IMGUI
-    // =========================================================
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     ImGui::StyleColorsDark();
 
-    // ---> ¡ESTA ES LA LÍNEA NUEVA QUE AGRANDA LAS LETRAS Y BOTONES!
-    io.FontGlobalScale = 1.5f; // Escala global al 150% (Súper legible)
+    io.FontGlobalScale = 1.5f;
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
-    // =========================================================
 
-    /*************** BUCLE DE RENDERIZADO PRINCIPAL ***************/
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -301,10 +300,7 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // 2. DISEÑO DEL PANEL DE CONTROL DE IMGUI
-        // Ajustamos las medidas: 550 píxeles de ancho (bien espacioso) por solo 350 de alto (compacto)
         ImGui::SetNextWindowSize(ImVec2(550.0f, 350.0f), ImGuiCond_Always);
-
         ImGui::Begin("Panel de Control - Paint Studio");
 
         ImGui::Text("Herramientas de Dibujo:");
@@ -321,13 +317,9 @@ int main() {
         else if (g_modoActual == TRIANGULO) ImGui::Text("Modo Activo: TRIANGULO");
 
         ImGui::Separator();
-
         ImGui::Checkbox("Rellenar Figuras", &g_rellenarFiguras);
-
         ImGui::Separator();
-
         ImGui::ColorEdit4("Color", g_colorActivo);
-
         ImGui::Separator();
 
         if (ImGui::Button("Deshacer")) {
@@ -355,7 +347,6 @@ int main() {
 
         ImGui::End();
 
-        // 3. Renderizado de tu Lienzo en OpenGL
         glClear(GL_COLOR_BUFFER_BIT);
         shader.Activate(shader.ID);
         glBindVertexArray(g_VAO_sq);
